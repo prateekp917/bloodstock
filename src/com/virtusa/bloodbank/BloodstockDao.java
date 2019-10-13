@@ -15,6 +15,7 @@ import org.apache.log4j.Logger;
 public class BloodstockDao implements BloodStockInterface {
 	private static final Logger log=Logger.getRootLogger();
 	private Connection connection=DBConnection.getConnection();
+	private final String FINDBLDTYPE ="select blood_type, count(blood_type) as quantity from blood_stock where blood_type =?";
 	private final String UPDATEALG="update Blood_Stock set Allergies=? where donor_id =?";
 	private final String DELETEBLD="delete from Blood_Stock where stock_id=?";
 	private final String ADDBLD="insert into Blood_Stock(blood_type, expiry_date, HGB, RBC, WBC, Platelets, MCV, Donor_id, Allergies) values (?,?,?,?,?,?,?,?,?)";
@@ -233,6 +234,40 @@ public class BloodstockDao implements BloodStockInterface {
 					log.error(e);
 			}
 		}
+		
+		@Override
+		public BloodStock findBldtype(String bloodtype) {
+			PreparedStatement pst=null;
+			try 
+			{
+				pst=connection.prepareStatement(FINDBLDTYPE);
+				pst.setInt(1, bloodtype);
+				ResultSet resultset=pst.executeQuery();
+				if(resultset.next())
+				{
+					String btype = rs.getString("bloodtype");
+					int count = rs.getInt("quantity");
+					
+				BloodStock bbtype =  new BloodStock(btype, count);
+				log.trace(bbtype);
+					
+				}
+			}
+			catch(SQLException e)
+			{
+				log.error(e);
+				return false;
+			}
+			finally 
+			{
+				if(pst!=null)
+					try {
+						pst.close();
+					}catch(SQLException e)
+				{
+						log.error(e);
+				}
+			}
 	}
 	
 	public static void main(String[] args) {
